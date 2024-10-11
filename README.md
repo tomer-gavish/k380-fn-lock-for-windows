@@ -16,7 +16,7 @@ Running `setFnKeys.exe` will lock Fn key till next reboot.
 Revert with `setMediaKeys.exe` to unlock and restore media keys.
 
 ## How to build
-- prerequisite : install mingw
+- prerequisite : install mingw and hidapi lib
 - build setFnKeys.exe with :   
     `gcc main.c -o dist/setFnKeys.exe -I hidapi/include -L hidapi/x86 -lhidapi`
 - build setMediaKeys.exe with :   

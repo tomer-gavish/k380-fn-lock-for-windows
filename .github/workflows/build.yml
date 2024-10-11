@@ -1,0 +1,60 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*'
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-hidapi
+
+    - name: Create dist directory
+      run: mkdir -p dist
+
+    - name: Build setFnKeys.exe
+      run: msys2 -c 'gcc main.c -o dist/setFnKeys.exe -I hidapi/include -L hidapi/x86 -lhidapi'
+
+    - name: Build setMediaKeys.exe
+      run: msys2 -c 'gcc main.c -D setMediaKeys -o dist/setMediaKeys.exe -I hidapi/include -L hidapi/x86 -lhidapi'
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload setFnKeys.exe
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/setFnKeys.exe
+        asset_name: setFnKeys_${{ github.ref }}.exe
+        asset_content_type: application/octet-stream
+
+    - name: Upload setMediaKeys.exe
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/setMediaKeys.exe
+        asset_name: setMediaKeys_${{ github.ref }}.exe
+        asset_content_type: application/octet-stream
